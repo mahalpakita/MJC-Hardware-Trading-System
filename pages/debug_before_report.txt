@@ -1,0 +1,32 @@
+Array
+(
+    [MEMBER_ID] => 1
+    [FIRST_NAME] => Marc
+    [LAST_NAME] => Mejia
+    [GENDER] => Male
+    [EMAIL] => mcmejia@gmail.com
+    [PHONE_NUMBER] => 09091245761
+    [JOB_TITLE] => Admin
+    [PROVINCE] => La Union
+    [CITY] => Agoo
+    [TYPE] => Admin
+    [notifications] => Array
+        (
+            [0] => ⚠️ Product 'FLAT BAR' (1/4 X 1) has low stock (3 left)!
+            [1] => ⚠️ Product 'SQUARE TUBE' (1 1/2 X 1 1/2 X 1.2) has low stock (4 left)!
+            [2] => ⚠️ Product 'SQUARE TUBE' (1 X 2 X 1.5) has low stock (5 left)!
+            [3] => ⚠️ Product 'SQUARE TUBE' (1 X 2 X 1.2) has low stock (3 left)!
+            [4] => ⚠️ Product 'MARINE PLYWOOD' (1/2&quot;) has low stock (4 left)!
+            [5] => ⚠️ Product 'MARINE PLYWOOD' (3/4&quot;) has low stock (3 left)!
+            [6] => ⚠️ Product 'PVC PIPE' (#1 1/2 (Blue)) has low stock (5 left)!
+            [7] => ⚠️ Product 'PVC PIPE' (#2 (S1000) (Orange)) has low stock (5 left)!
+            [8] => ⚠️ Product 'PVC PIPE' (#3 (S1000) (Orange)) has low stock (3 left)!
+            [9] => ⚠️ Product 'PVC PIPE' (#4 (S600) (Blue)) has low stock (5 left)!
+            [10] => ⚠️ Product 'PVC PIPE' (#4 (S1000) (Orange)) has low stock (1 left)!
+            [11] => ⚠️ Product 'PVC PIPE' (#6 (Orange)) has low stock (1 left)!
+            [12] => ⚠️ Product 'ADHESIVE' (BIG ELEPHANT) has expired!
+            [13] => ❌ Product 'ADHESIVE' (VCC) is out of stock!
+        )
+
+    [EXPENSE_SESSION_ID] => 
+)
