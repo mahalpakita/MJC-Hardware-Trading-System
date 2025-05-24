@@ -6,24 +6,25 @@
       <div id="content">
 
         <!-- Topbar -->
-        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white topbar mb-4 static-top shadow" style="position: relative; z-index: 1;">
 
-          <!-- Sidebar Toggle (Topbar) -->
-          <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-            <i class="fa fa-bars"></i>
+          <!-- Company Name -->
+          <div class="d-flex justify-content-center flex-grow-1">
+            <a href="index.php" class="text-decoration-none text-center">
+              <h2 class="text-primary font-weight-bold mb-0 d-none d-lg-block">MJC Hardware Trading</h2>
+              <h4 class="text-primary font-weight-bold mb-0 d-lg-none">MJC Hardware</h4>
+            </a>
+          </div>
+
+          <!-- Mobile Menu Toggle -->
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
           </button>
           
- <!-- Company Name -->  
- <a href="index.php" class="text-decoration-none">
-    <h2 class="text-primary font-weight-bold mb-0">MJC Hardware Trading</h2>
-</a>
-
-
-
+          <!-- Collapsible Navigation -->
+          <div class="collapse navbar-collapse" id="navbarNav">
           <!-- Topbar Navbar -->
           <ul class="navbar-nav ml-auto">
-
-      
             <div class="topbar-divider d-none d-sm-block"></div>
 
             <!-- Nav Item - User Information -->
@@ -38,11 +39,9 @@
                     echo 'src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNngF0RFPjyGl4ybo78-XYxxeap88Nvsyj1_txm6L4eheH8ZBu"';
                   }
                 ?>>
-
               </a>
 
               <?php 
-
                 $query = 'SELECT ID, FIRST_NAME,LAST_NAME,USERNAME,PASSWORD
                           FROM users u
                           JOIN employee e ON e.EMPLOYEE_ID=u.EMPLOYEE_ID';
@@ -51,26 +50,23 @@
                 while ($row = mysqli_fetch_assoc($result)) {
                           $a = $_SESSION['MEMBER_ID'];
                 }
-                          
             ?>
 
               <!-- Dropdown - User Information -->
-              <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                
-                <a class="dropdown-item" href="settings.php?action=edit & id='<?php echo $a; ?>'">
+              <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown" style="z-index: 1031;">
+                <a class="dropdown-item" href="settings.php?action=edit & id='<?php echo $a; ?>'" style="color: black !important; text-decoration: none;">
                   <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Settings
+                  <span style="color: black !important;">Settings</span>
                 </a>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal" style="color: black !important; text-decoration: none;">
                   <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Logout
+                  <span style="color: black !important;">Logout</span>
                 </a>
               </div>
             </li>
-
           </ul>
-
+          </div>
         </nav>
         <!-- End of Topbar -->
           

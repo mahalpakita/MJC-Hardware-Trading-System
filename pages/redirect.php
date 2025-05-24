@@ -8,17 +8,15 @@ if (!isset($_SESSION['MEMBER_ID'])) {
 }
 
 // Get user type
-$query = "SELECT t.TYPE FROM users u
-          JOIN type t ON t.TYPE_ID = u.TYPE_ID
-          WHERE u.ID = " . intval($_SESSION['MEMBER_ID']);
+$query = "SELECT TYPE_ID FROM users WHERE ID = " . intval($_SESSION['MEMBER_ID']);
 $result = mysqli_query($db, $query) or die(mysqli_error($db));
 $row = mysqli_fetch_assoc($result);
-$userType = $row['TYPE'];
+$userTypeID = $row['TYPE_ID'];
 
 // ✅ RESTRICT FUNCTIONS: Prevent specific user types
 function restrictOnlyAdmin() {
-    global $userType;
-    if ($userType == 'Admin') {
+    global $userTypeID;
+    if ($userTypeID == 1) {
         echo "<script>
                 window.onload = function() {
                     alert('Restricted Page! This page is not accessible for Admins.');
@@ -30,8 +28,8 @@ function restrictOnlyAdmin() {
 }
 
 function restrictOnlyManager() {
-    global $userType;
-    if ($userType == 'Manager') {
+    global $userTypeID;
+    if ($userTypeID == 3) {
         echo "<script>
                 window.onload = function() {
                     alert('Restricted Page! This page is not accessible for Managers.');
@@ -43,8 +41,8 @@ function restrictOnlyManager() {
 }
 
 function restrictOnlyCashier() {
-    global $userType;
-    if ($userType == 'Cashier') {
+    global $userTypeID;
+    if ($userTypeID == 2) {
         echo "<script>
                 window.onload = function() {
                     alert('Restricted Page! This page is not accessible for Cashiers.');
@@ -57,9 +55,9 @@ function restrictOnlyCashier() {
 
 // ✅ ALLOW-ONLY FUNCTIONS: Allow one type, restrict others
 function allowOnlyAdmin() {
-    global $userType;
-    if ($userType != 'Admin') {
-        $redirectPage = ($userType == 'Manager') ? 'index_manager.php' : 'pos.php';
+    global $userTypeID;
+    if ($userTypeID != 1) {
+        $redirectPage = ($userTypeID == 3) ? 'index_manager.php' : 'pos.php';
         echo "<script>
                 window.onload = function() {
                     alert('Restricted Page! Only Admins are allowed.');
@@ -71,9 +69,9 @@ function allowOnlyAdmin() {
 }
 
 function allowOnlyManager() {
-    global $userType;
-    if ($userType != 'Manager') {
-        $redirectPage = ($userType == 'Admin') ? 'index.php' : 'pos.php';
+    global $userTypeID;
+    if ($userTypeID != 3) {
+        $redirectPage = ($userTypeID == 1) ? 'index.php' : 'pos.php';
         echo "<script>
                 window.onload = function() {
                     alert('Restricted Page! Only Managers are allowed.');
@@ -85,9 +83,9 @@ function allowOnlyManager() {
 }
 
 function allowOnlyCashier() {
-    global $userType;
-    if ($userType != 'Cashier') {
-        $redirectPage = ($userType == 'Admin') ? 'index.php' : 'index_manager.php';
+    global $userTypeID;
+    if ($userTypeID != 2) {
+        $redirectPage = ($userTypeID == 1) ? 'index.php' : 'index_manager.php';
         echo "<script>
                 window.onload = function() {
                     alert('Restricted Page! Only Cashiers are allowed.');

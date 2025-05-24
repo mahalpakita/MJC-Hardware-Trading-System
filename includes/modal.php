@@ -220,24 +220,30 @@ if ($rowUser = mysqli_fetch_assoc($resultUser)) {
             <div class="modal-body">
                 <form role="form" method="post" action="pro_transac.php?action=add">
                     <div class="form-group">
-                        <input class="form-control" id="prodcode" placeholder="Product Code" name="prodcode" >
+                        <label for="prodcode">Product Code</label>
+                        <input class="form-control" id="prodcode" placeholder="Product Code (Optional)" name="prodcode">
                     </div>
                     <div class="form-group">
-                        <input class="form-control" placeholder="Name" name="name" required>
+                        <label for="name">Name <span class="text-danger">*</span></label>
+                        <input class="form-control" id="name" placeholder="Name" name="name" required>
                     </div>
                     <div class="form-group">
-                        <textarea rows="5" cols="50" class="form-control" placeholder="Description" name="description"></textarea>
+                        <label for="description">Description <span class="text-danger">*</span></label>
+                        <textarea rows="5" cols="50" class="form-control" id="description" placeholder="Description" name="description" required></textarea>
                     </div>
                     <div class="form-group">
-                        <input type="number" min="1" max="999999999" class="form-control" placeholder="Quantity" name="quantity" required>
+                        <label for="quantity">Quantity <span class="text-danger">*</span></label>
+                        <input type="number" min="1" max="999999999" class="form-control" id="quantity" placeholder="Quantity" name="quantity" required>
                     </div>
                     <div class="form-group">
+                        <label for="price">Price <span class="text-danger">*</span></label>
                         <input type="number" min="1" max="9999999999" class="form-control" id="price" placeholder="Price" name="price" required>
                     </div>
 
                     <!-- Branch Selection -->
                     <div class="form-group">
-                        <select class="form-control" name="branch_id" required>
+                        <label for="branch_id">Branch <span class="text-danger">*</span></label>
+                        <select class="form-control" id="branch_id" name="branch_id" required>
                             <option value="" disabled selected>Select Branch</option>
                             <?php
                                 $branch_query = "SELECT BRANCH_ID, BRANCH_NAME FROM branches";
@@ -251,7 +257,7 @@ if ($rowUser = mysqli_fetch_assoc($resultUser)) {
 
                     <!-- Supplier Selection -->
                     <div class="form-group">
-                        <label for="supplier">Supplier</label>
+                        <label for="supplier">Supplier <span class="text-danger">*</span></label>
                         <?php
                             $sql2 = "SELECT DISTINCT SUPPLIER_ID, COMPANY_NAME FROM supplier ORDER BY COMPANY_NAME ASC";
                             $result2 = mysqli_query($db, $sql2) or die("Bad SQL: $sql2");
@@ -266,15 +272,23 @@ if ($rowUser = mysqli_fetch_assoc($resultUser)) {
                     </div>
 
                     <div class="form-group">
-                        <input type="text" onfocus="(this.type='date')" onblur="(this.type='text')" class="form-control" placeholder="Date Stock In" name="datestock" required>
+                        <label for="datestock">Date Stock In <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="datestock" name="datestock" 
+                               value="<?php echo date('Y-m-d'); ?>" 
+                               max="<?php echo date('Y-m-d'); ?>" 
+                               required>
                     </div>
+
                     <div class="form-group">
-                        <input type="text" onfocus="(this.type='date')" onblur="(this.type='text')" class="form-control" placeholder="Expiration Date" name="expiration">
+                        <label for="expiration">Expiration Date</label>
+                        <input type="date" class="form-control" id="expiration" name="expiration" 
+                               min="<?php echo date('Y-m-d'); ?>">
                     </div>
 
                     <!-- Remarks Field -->
                     <div class="form-group">
-                        <textarea class="form-control" rows="3" placeholder="Remarks (Optional)" name="remarks"></textarea>
+                        <label for="remarks">Remarks</label>
+                        <textarea class="form-control" id="remarks" rows="3" placeholder="Remarks (Optional)" name="remarks"></textarea>
                     </div>
 
                     <hr>
@@ -287,7 +301,22 @@ if ($rowUser = mysqli_fetch_assoc($resultUser)) {
     </div>
 </div>
 
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('#aModal form');
+    const dateInput = document.getElementById('datestock');
+    
+    if (form && dateInput) {
+        form.addEventListener('submit', function(e) {
+            if (!dateInput.value) {
+                e.preventDefault();
+                alert('Please select a valid date');
+                dateInput.value = '<?php echo date('Y-m-d'); ?>';
+            }
+        });
+    }
+});
+</script>
 
   <!-- Logout Modal-->
   <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">

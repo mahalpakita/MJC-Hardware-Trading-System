@@ -1,144 +1,129 @@
 <?php
-require_once('redirect.php');
-allowOnlyCashier();
 include '../includes/connection.php';
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
-// Validate required fields
-$requiredFields = ['transNo', 'customer', 'subtotal', 'cash'];
-foreach ($requiredFields as $field) {
-    if (!isset($_POST[$field])) {
-        die("<script>alert('Error: Missing required fields!'); window.history.back();</script>");
+// Debugging: Print POST data to check if remarks and supplier are included
+error_log("POST data: " . print_r($_POST, true));
+
+$pc = mysqli_real_escape_string($db, $_POST['prodcode']);  // Product Code
+$name = mysqli_real_escape_string($db, $_POST['name']);    // Product Name
+$desc = mysqli_real_escape_string($db, $_POST['description']); // Description
+$qty = intval($_POST['quantity']);   // Quantity
+$pr = floatval($_POST['price']);     // Price
+$supp = isset($_POST['supplier']) ? intval($_POST['supplier']) : NULL;
+
+// Date handling with validation
+$dats = !empty($_POST['datestock']) ? $_POST['datestock'] : date('Y-m-d');
+$exp_date = !empty($_POST['expiration']) ? $_POST['expiration'] : NULL;
+
+// Function to validate date format
+function validateDate($date) {
+    $d = DateTime::createFromFormat('Y-m-d', $date);
+    return $d && $d->format('Y-m-d') === $date;
+}
+
+// Validate dates
+if (!validateDate($dats)) {
+    die("<script>alert('Error: Invalid Date Stock In format.'); window.history.back();</script>");
+}
+
+if ($exp_date !== NULL && !validateDate($exp_date)) {
+    die("<script>alert('Error: Invalid Expiration Date format.'); window.history.back();</script>");
+}
+
+// Debug the date values
+error_log("Raw Date Stock In value: " . $_POST['datestock']);
+error_log("Processed Date Stock In value: " . $dats);
+error_log("Raw Expiration Date value: " . $_POST['expiration']);
+error_log("Processed Expiration Date value: " . $exp_date);
+
+$branch = intval($_POST['branch_id']); // Branch ID
+$remarks = mysqli_real_escape_string($db, $_POST['remarks']); // Get remarks
+
+if (empty($supp)) {
+    die("<script>alert('Error: Supplier is required.'); window.history.back();</script>");
+}
+
+if ($_GET['action'] == 'add') {
+    // Format dates properly
+    $dats = date('Y-m-d', strtotime($dats));
+    $exp_date = $exp_date ? date('Y-m-d', strtotime($exp_date)) : NULL;
+
+    // Ensure date is in correct format
+    $dats = DateTime::createFromFormat('Y-m-d', $dats);
+    if (!$dats) {
+        die("<script>alert('Error: Invalid Date Stock In format.'); window.history.back();</script>");
     }
-}
+    $dats = $dats->format('Y-m-d');
 
-// Retrieve and sanitize form data
-$date = $_POST['date'] ?? date('Y-m-d');
-$customer = trim($_POST['customer']);
-$subtotal = str_replace(',', '', $_POST['subtotal']);
-$lessvat = str_replace(',', '', $_POST['lessvat'] ?? 0);
-$netvat = str_replace(',', '', $_POST['netvat'] ?? 0);
-$addvat = str_replace(',', '', $_POST['addvat'] ?? 0);
-$cash = str_replace(',', '', $_POST['cash']);
-$discount = str_replace(',', '', $_POST['discount'] ?? 0);
-$emp = trim($_POST['employee'] ?? 'Unknown');
-$rol = trim($_POST['role'] ?? 'Unknown');
-$transNo = trim($_POST['transNo']);
+    // Insert into `product` table using prepared statement
+    $query = "INSERT INTO product 
+        (PRODUCT_CODE, NAME, DESCRIPTION, QTY_STOCK, PRICE, SUPPLIER_ID, DATE_STOCK_IN, EXPIRATION_DATE, BRANCH_ID, REMARKS) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-// Validate Transaction Number
-if (empty($transNo)) {
-    die("<script>alert('Error: Transaction Number is required!'); window.history.back();</script>");
-}
-
-// Process Discount
-$discount = isset($_POST['discount']) ? trim($_POST['discount']) : '0';
-if (strpos($discount, '%') !== false) {
-    $discount = bcdiv(str_replace('%', '', $discount) * $subtotal / 100, '1', 2);
-} else {
-    $discount = bcdiv($discount, '1', 2);
-}
-
-// Compute Grand Total after Discount
-$total = bcsub($subtotal, $discount, 2);
-if ($total < 0) {
-    $total = '0.00';
-}
-
-// Validate Payment Method & Reference No.
-$payment = $_POST['payment'] ?? 'cash';
-$referenceNo = ($payment === 'online' && !empty($_POST['referenceNo'])) ? $_POST['referenceNo'] : 'N/A';
-
-// Generate Unique Transaction ID
-$today = date("mdGis");
-
-// Check if 'product_id' is provided
-if (!isset($_POST['product_id']) || !is_array($_POST['product_id'])) {
-    die("<script>alert('Error: No products selected!'); window.history.back();</script>");
-}
-$countID = count($_POST['product_id']);
-
-// Check for Duplicate Transaction Number
-$checkQuery = "SELECT TRANS_NO FROM transaction WHERE TRANS_NO = ?";
-$stmt = mysqli_prepare($db, $checkQuery);
-mysqli_stmt_bind_param($stmt, "s", $transNo);
-mysqli_stmt_execute($stmt);
-mysqli_stmt_store_result($stmt);
-if (mysqli_stmt_num_rows($stmt) > 0) {
-    echo "<script>alert('Duplicate transaction number found! Please try again.'); window.history.back();</script>";
-    exit();
-}
-mysqli_stmt_close($stmt);
-
-// Insert Transaction Details
-if ($_GET['action'] === 'add') {
-    for ($i = 0; $i < $countID; $i++) {
-        $productId = intval($_POST['product_id'][$i]);
-        $quantity = bcdiv($_POST['quantity'][$i], '1', 2);
-        $price = bcdiv($_POST['price'][$i], '1', 2);
-
-        $productQuery = "SELECT NAME, DESCRIPTION FROM product WHERE PRODUCT_ID = ?";
-        $stmt = mysqli_prepare($db, $productQuery);
-        mysqli_stmt_bind_param($stmt, "i", $productId);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $productData = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
-
-        if (!$productData) {
-            die("Error: Product ID '$productId' not found in the database.");
-        }
-
-        $productName = $productData['NAME'];
-        $description = $productData['DESCRIPTION'];
-
-        $insertQuery = "INSERT INTO transaction_details 
-                        (TRANS_D_ID, PRODUCTS, DESCRIPTION, QTY, PRICE, EMPLOYEE, ROLE, PAYMENT, TRANS_NO, REF_NO, PRODUCT_ID) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = mysqli_prepare($db, $insertQuery);
-        mysqli_stmt_bind_param($stmt, "sssdssssssi", 
-            $today, $productName, $description, $quantity, $price, 
-            $emp, $rol, $payment, $transNo, $referenceNo, $productId
-        );
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+    $stmt = mysqli_prepare($db, $query);
+    if (!$stmt) {
+        die('Error in preparing statement: ' . mysqli_error($db));
     }
-}
 
-// Insert Transaction with Discount
-$query111 = "INSERT INTO transaction 
-             (TRANS_NO, CUST_ID, NUMOFITEMS, SUBTOTAL, LESSVAT, NETVAT, ADDVAT, GRANDTOTAL, CASH, DATE, TRANS_D_ID, PAYMENT, REF_NO, DISCOUNT) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    // Debug the values
+    error_log("Values being bound: " . print_r([
+        'pc' => $pc,
+        'name' => $name,
+        'desc' => $desc,
+        'qty' => $qty,
+        'pr' => $pr,
+        'supp' => $supp,
+        'dats' => $dats,
+        'exp_date' => $exp_date,
+        'branch' => $branch,
+        'remarks' => $remarks
+    ], true));
 
-$stmt = mysqli_prepare($db, $query111);
-mysqli_stmt_bind_param($stmt, "ssssssssssssss", 
-    $transNo, $customer, $countID, $subtotal, $lessvat, 
-    $netvat, $addvat, $total, $cash, $date, 
-    $today, $payment, $referenceNo, $discount
-);
-mysqli_stmt_execute($stmt);
-mysqli_stmt_close($stmt);
+    // Bind parameters with correct types
+    mysqli_stmt_bind_param($stmt, "sssdisisss", 
+        $pc,      // PRODUCT_CODE (s)
+        $name,    // NAME (s)
+        $desc,    // DESCRIPTION (s)
+        $qty,     // QTY_STOCK (d)
+        $pr,      // PRICE (i)
+        $supp,    // SUPPLIER_ID (s)
+        $dats,    // DATE_STOCK_IN (s)
+        $exp_date,// EXPIRATION_DATE (s)
+        $branch,  // BRANCH_ID (s)
+        $remarks  // REMARKS (s)
+    );
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        error_log("MySQL Error: " . mysqli_stmt_error($stmt));
+        error_log("MySQL Error Code: " . mysqli_stmt_errno($stmt));
+        die('Error in executing statement: ' . mysqli_stmt_error($stmt));
+    }
 
-// Delete Items in Cart After Successful Transaction
-if (!empty($_SESSION['cart_session_id']) && !empty($_SESSION['BRANCH_ID'])) {
-    $deleteQuery = "DELETE FROM pos_cart WHERE SESSION_ID = ? AND BRANCH_ID = ?";
-    $stmt = mysqli_prepare($db, $deleteQuery);
-    mysqli_stmt_bind_param($stmt, "si", $_SESSION['cart_session_id'], $_SESSION['BRANCH_ID']);
-    mysqli_stmt_execute($stmt);
+    // Debug the actual SQL query and values
+    error_log("SQL Query: " . $query);
+    error_log("Date Stock In value being inserted: " . $dats);
+    error_log("MySQL Error: " . mysqli_error($db));
+
+    $productId = mysqli_insert_id($db);
     mysqli_stmt_close($stmt);
+
+    // Insert into product_history
+    $user = 'Admin'; // Replace with session user if available
+
+    $historyQuery = "INSERT INTO product_history 
+        (PRODUCT_ID, PRODUCT_CODE, NAME, DESCRIPTION, QTY_STOCK, PRICE, SUPPLIER_ID, BRANCH_ID, ACTION_TYPE, USER, ACTION_DATE)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Added', ?, NOW())";
+
+    $historyStmt = mysqli_prepare($db, $historyQuery);
+    mysqli_stmt_bind_param($historyStmt, "isssdisis", $productId, $pc, $name, $desc, $qty, $pr, $supp, $branch, $user);
+    mysqli_stmt_execute($historyStmt);
+    mysqli_stmt_close($historyStmt);
 }
-
-// Clear Session After Transaction
-unset($_SESSION['pointofsale']);
-unset($_SESSION['cart_session_id']);
-unset($_SESSION['BRANCH_ID']);
-session_regenerate_id(true);
-
 ?>
-
 <script type="text/javascript">
-    alert("Transaction Successful!");
-    window.location = "pos.php";
+    window.location = "inventory.php";
 </script>
+
+<?php
+include '../includes/footer.php';
+?>

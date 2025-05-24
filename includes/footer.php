@@ -65,9 +65,7 @@
 
   <!-- PROFILE OVERLAY NA MODAL -->
   <div id="overlay" onclick="off()">
-    <div id="text">I'm <?php echo $_SESSION['FIRST_NAME'] . ' ' . $_SESSION['LAST_NAME']; ?><br>
-    From <?php echo $_SESSION['PROVINCE'] . ' ' . $_SESSION['CITY']; ?></div>
-  </div>
+   
   <script>
     function on() {
       document.getElementById("overlay").style.display = "block";

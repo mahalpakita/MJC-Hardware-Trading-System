@@ -36,7 +36,7 @@ if ($row = mysqli_fetch_assoc($resulta)) {
 
 // Get Product Details
 $query = 'SELECT p.PRODUCT_ID, p.PRODUCT_CODE, p.NAME, p.DESCRIPTION, p.QTY_STOCK, p.PRICE, 
-                 p.EXPIRATION_DATE, p.REMARKS, b.BRANCH_NAME, s.COMPANY_NAME
+                 p.DATE_STOCK_IN, p.EXPIRATION_DATE, p.REMARKS, b.BRANCH_NAME, s.COMPANY_NAME
           FROM product p 
           JOIN supplier s ON p.SUPPLIER_ID = s.SUPPLIER_ID 
           LEFT JOIN branches b ON p.BRANCH_ID = b.BRANCH_ID 
@@ -56,6 +56,7 @@ while ($row = mysqli_fetch_array($result)) {
     $G = $row['BRANCH_NAME']; // Branch Name
     $H = isset($row['EXPIRATION_DATE']) ? $row['EXPIRATION_DATE'] : ''; // Handle NULL values
     $I = isset($row['REMARKS']) ? $row['REMARKS'] : ''; // Handle NULL remarks
+    $J = isset($row['DATE_STOCK_IN']) ? date('Y-m-d', strtotime($row['DATE_STOCK_IN'])) : ''; // Date Stock In
 }
 
 $id = $_GET['id'];
@@ -123,6 +124,13 @@ $id = $_GET['id'];
                     <div class="col-sm-3" style="padding-top: 5px;">Supplier:</div>
                     <div class="col-sm-9">
                         <input class="form-control" value="<?php echo $D; ?>" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group row text-left">
+                    <div class="col-sm-3" style="padding-top: 5px;">Date Stock In:</div>
+                    <div class="col-sm-9">
+                        <input type="date" class="form-control" value="<?php echo $J; ?>" readonly>
                     </div>
                 </div>
 
